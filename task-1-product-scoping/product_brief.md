@@ -12,3 +12,72 @@
 ## 3. Focus Definition (v1 Strategy)
 * **Operational Alignment:** Rather than building an overcomplicated system or attempting complex, fragile API integrations upfront, the initial focus will center entirely on streamlining the data layer around the team's current manual export workflows.
 * **Core MVP Value:** The v1 implementation must solve the immediate problem of data fragmentation and speed-to-insight for the internal team before expanding functionality to external clients.
+
+## 4. Scope Boundaries (v1 MVP)
+
+### 🟩 In-Scope
+* **Unified Cross-Channel Canvas:** A single, aggregated performance dashboard displaying critical top-of-funnel metrics: Total Spend, Impressions, Clicks, Conversions, Blended CPA (Cost Per Acquisition), and Blended ROAS (Return on Ad Spend).
+* **"Drop-Zone" File Ingestion:** A centralized, shared storage folder (e.g., Google Drive or Google Cloud Storage staging bucket) where analysts can drop their standard daily/weekly manual CSV exports. The tool automatically detects, parses, and cleans these files without changing the team's current tools.
+* **Data Currency Metadata:** A prominent "Last Updated" timestamp for each active ad network source, ensuring analysts immediately know how fresh the data is before building recommendations.
+
+### 🟥 Out-of-Scope (Explicitly Deferred)
+* **Direct Platform API Integration (OAuth):** Building live API pipelines to Meta Ads, Google Ads, or TikTok Manager is completely deferred to preserve simplicity and adhere to the strict constraint of not altering existing workflows in v1.
+* **Client-Facing Portals & Access Control:** No external client login systems, white-labeling, multi-tenant permissions, or custom client UI views.
+* **Write-Back Automated Optimization:** The system will remain purely read-only for analytical consumption; it will not write back to ad networks to pause campaigns, adjust bids, or shift budgets automatically.
+
+## 5. Definition of a Successful Interaction
+A successful interaction occurs when an internal analyst opens the dashboard, selects a specific client brand, and can instantly pinpoint which channel is underperforming (e.g., tracking a sudden spike in cross-channel CPA) within 60 seconds. The analyst walks away knowing exactly where to refocus their strategic attention, completely eliminating the 2–3 hours normally lost to manual file stitching and spreadsheet formatting.
+
+## 6. Data Flow Architecture (v1 Engine)
+
+The diagram below outlines how the v1 tool seamlessly interfaces with the team's existing manual workflows, centralizing the data layer without disrupting current day-to-day operations.
+
+```mermaid
+graph TD
+    %% Data Sources (Existing Tools)
+    subgraph Ad_Platforms [Existing Tools & Workflows]
+        A1[Meta Ads Manager] -->|Manual CSV Export| B1[Standardized Format A]
+        A2[Google Ads Console] -->|Manual CSV Export| B2[Standardized Format B]
+        A3[TikTok Ads Manager] -->|Manual CSV Export| B3[Standardized Format C]
+    end
+
+    %% Ingestion Layer
+    subgraph Ingestion_Layer [Ingestion & Storage Layer]
+        B1 & B2 & B3 -->|Drop Files| C[Central Shared Storage Folder / GCS Bucket]
+        C -->|Automated Trigger| D[Processing Engine]
+    end
+
+    %% Processing & Core Engine
+    subgraph Core_Engine [Data Transformation Engine]
+        D -->|Step 1: Parsing| E[Parse Inconsistent Headers & Formats]
+        E -->|Step 2: Cleaning| F[Handle Nulls, Currency Mismatches & Typo Resolving]
+        F -->|Step 3: Aggregation| G[Calculate Blended Metrics: Spend, CPA, ROAS]
+    end
+
+    %% Output View
+    subgraph Internal_Delivery [Delivery & Presentation Layer]
+        G -->|Store Unified Structure| H[(Internal Data Analytics Tables)]
+        H -->|Render Views| I[v1 Performance Dashboard UI]
+        I -->|Instant Actionable Insight| J[Internal Marketing Analyst]
+    end
+
+    %% Visual Styling
+    style Ad_Platforms fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style Ingestion_Layer fill:#e1f5fe,stroke:#0288d1,stroke-width:1px
+    style Core_Engine fill:#efebe9,stroke:#5d4037,stroke-width:1px
+    style Internal_Delivery fill:#e8f5e9,stroke:#388e3c,stroke-width:1px
+```
+## 7. Key Data Flow Decisions & Trade-Offs
+* **File-Based Architecture:** By anchoring the ingestion at the central Shared Folder/GCS boundary, we completely isolate our application logic from external API changes or authentication breaks, fulfilling the critical constraint of fitting around the team's current habits.
+* **Decoupled Computation:** The processing engine is intentionally separated from the presentation layer, allowing the underlying data tables to be queried by a basic UI panel or easily repurposed into other tools later if needs shift.
+
+## 8. Strategic Summary & Next Steps (Future Runway)
+
+### 📌 Summary of Core Decisions
+The v1 scope deliberately sacrifices automated data extraction (APIs) to maximize implementation speed and guarantee 100% compliance with existing operational habits. By focusing strictly on the internal marketing analyst as the core user, we ensure that the team can establish data consistency and baseline trust before scaling the platform outward.
+
+### ⏳ What to Revisit With More Time
+If given an extended development timeline, the product roadmap would evolve across the following horizons:
+1. **Transition to Native API Connections:** Once the internal team trusts the unified data structures generated by the manual CSV uploads, we would gradually phase out manual exports and introduce authenticated OAuth pipeline connections to Meta, Google, and TikTok APIs to automate ingestion entirely.
+2. **Granular Multi-Tenant Access Control:** Implement safe authentication layers to allow external client logins, giving clients direct access to filtered, white-labeled performance views of *only* their specific brand data.
+3. **Predictive Analytics & Intent-Driven Alerting:** Integrate lightweight AI or statistical models to automatically flag statistically significant performance anomalies (e.g., a sudden 30% drop in day-over-day ROAS on a specific ad set) and deliver proactive recommendations directly to the analyst via Slack or email.
