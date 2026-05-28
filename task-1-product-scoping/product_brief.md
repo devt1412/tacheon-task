@@ -27,3 +27,42 @@
 
 ## 5. Definition of a Successful Interaction
 A successful interaction occurs when an internal analyst opens the dashboard, selects a specific client brand, and can instantly pinpoint which channel is underperforming (e.g., tracking a sudden spike in cross-channel CPA) within 60 seconds. The analyst walks away knowing exactly where to refocus their strategic attention, completely eliminating the 2–3 hours normally lost to manual file stitching and spreadsheet formatting.
+
+## 6. Data Flow Architecture (v1 Engine)
+
+The diagram below outlines how the v1 tool seamlessly interfaces with the team's existing manual workflows, centralizing the data layer without disrupting current day-to-day operations.
+
+```mermaid
+graph TD
+    %% Data Sources (Existing Tools)
+    subgraph Ad_Platforms [Existing Tools & Workflows]
+        A1[Meta Ads Manager] -->|Manual CSV Export| B1[Standardized Format A]
+        A2[Google Ads Console] -->|Manual CSV Export| B2[Standardized Format B]
+        A3[TikTok Ads Manager] -->|Manual CSV Export| B3[Standardized Format C]
+    end
+
+    %% Ingestion Layer
+    subgraph Ingestion_Layer [Ingestion & Storage Layer]
+        B1 & B2 & B3 -->|Drop Files| C[Central Shared Storage Folder / GCS Bucket]
+        C -->|Automated Trigger| D[Processing Engine]
+    end
+
+    %% Processing & Core Engine
+    subgraph Core_Engine [Data Transformation Engine]
+        D -->|Step 1: Parsing| E[Parse Inconsistent Headers & Formats]
+        E -->|Step 2: Cleaning| F[Handle Nulls, Currency Mismatches & Typo Resolving]
+        F -->|Step 3: Aggregation| G[Calculate Blended Metrics: Spend, CPA, ROAS]
+    end
+
+    %% Output View
+    subgraph Internal_Delivery [Delivery & Presentation Layer]
+        G -->|Store Unified Structure| H[(Internal Data Analytics Tables)]
+        H -->|Render Views| I[v1 Performance Dashboard UI]
+        I -->|Instant Actionable Insight| J[Internal Marketing Analyst]
+    end
+
+    %% Visual Styling
+    style Ad_Platforms fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style Ingestion_Layer fill:#e1f5fe,stroke:#0288d1,stroke-width:1px
+    style Core_Engine fill:#efebe9,stroke:#5d4037,stroke-width:1px
+    style Internal_Delivery fill:#e8f5e9,stroke:#388e3c,stroke-width:1px
